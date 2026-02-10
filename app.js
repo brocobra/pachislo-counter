@@ -272,13 +272,14 @@ function undoLast() {
 
 // セッションリセット（累計は保持）
 function resetSession() {
+    console.log('resetSession called');
     const machine = getCurrentMachine();
     if (!machine) {
         alert('台を選択してください');
         return;
     }
 
-    if (confirm('セッションをリセットしますか？\n（累計有利区間は保持されます）')) {
+    if (confirm('セッションをリセットしますか？\n（この台の累計は保持されます）')) {
         updateCurrentMachine({
             sessionHistory: []
         });
@@ -289,6 +290,7 @@ function resetSession() {
 
 // 台を削除
 function deleteMachine() {
+    console.log('deleteMachine called');
     const data = loadData();
     if (!data.currentMachineId) {
         alert('台を選択してください');
@@ -424,3 +426,11 @@ function init() {
 
 // 起動
 document.addEventListener('DOMContentLoaded', init);
+
+// グローバルに公開（onclick用）
+const app = {
+    undoLast: undoLast,
+    saveMachine: () => alert('台は自動保存されています'),
+    resetSession: resetSession,
+    deleteMachine: deleteMachine
+};

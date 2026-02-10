@@ -21,7 +21,7 @@
         <!-- 現在の有利区間（累計） -->
         <div class="current-games">
             <div class="current-row">
-                <span>累計有利区間</span>
+                <span>この台の累計</span>
                 <span class="total-count"><span id="totalGames">0</span>G</span>
             </div>
             <div class="current-row">
@@ -66,10 +66,10 @@
 
         <!-- 操作ボタン -->
         <div class="control-buttons">
-            <button id="undoBtn" class="undo">↩ 元に戻す</button>
-            <button id="saveMachineBtn" class="save-machine">💾 台を保存</button>
-            <button id="resetSessionBtn" class="reset-session">🔄 セッションリセット</button>
-            <button id="deleteMachineBtn" class="delete-machine">🗑 台削除</button>
+            <button id="undoBtn" class="undo" onclick="app.undoLast()">↩ 元に戻す</button>
+            <button id="saveMachineBtn" class="save-machine" onclick="app.saveMachine()">💾 台を保存</button>
+            <button id="resetSessionBtn" class="reset-session" onclick="app.resetSession()">🔄 セッションリセット</button>
+            <button id="deleteMachineBtn" class="delete-machine" onclick="app.deleteMachine()">🗑 台削除</button>
         </div>
 
         <!-- 保存日時 -->
