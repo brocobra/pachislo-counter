@@ -1,11 +1,10 @@
-// データのキー
 const STORAGE_KEY = 'pachislo_data';
 
 // データを読み込み
 function loadData() {
     const data = localStorage.getItem(STORAGE_KEY);
     return data ? JSON.parse(data) : {
-        totalGames: 0,
+        history: [],      // { type: 'BB'|'RB', before: number, after: number, time: string }
         memo: '',
         comments: []
     };
@@ -13,16 +12,59 @@ function loadData() {
 
 // データを保存
 function saveData(data) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    localStorage.setItem(STORAGE_KEY, data);
     updateLastSaved();
+}
+
+// 有利区間の合計ゲーム数を計算
+function calculateTotal() {
+    const data = loadData();
+    if (data.history.length === 0) return 0;
+    return data.history[data.history.length - 1].after;
 }
 
 // 表示を更新
 function updateDisplay() {
     const data = loadData();
-    document.getElementById('totalGames').textContent = data.totalGames;
+    const total = calculateTotal();
+
+    // 有利区間表示
+    document.getElementById('totalGames').textContent = total;
+
+    // メモ
     document.getElementById('memo').value = data.memo;
+
+    // 履歴
+    renderHistory(data.history);
+
+    // コメント
     renderComments(data.comments);
+}
+
+// 履歴を表示
+function renderHistory(history) {
+    const container = document.getElementById('historyList');
+
+    if (history.length === 0) {
+        container.innerHTML = '<p class="empty">まだ履歴がありません</p>';
+        return;
+    }
+
+    container.innerHTML = '';
+    history.slice().reverse().forEach((item, index) => {
+        const div = document.createElement('div');
+        div.className = `history-item ${item.type.toLowerCase()}`;
+        div.innerHTML = `
+            <span class="bonus-type">${item.type}</span>
+            <div class="games">
+                <span class="before">${item.before}</span>
+                <span class="arrow">→</span>
+                <span class="after">${item.after}</span>
+            </div>
+            <span class="time">${item.time}</span>
+        `;
+        container.appendChild(div);
+    });
 }
 
 // コメントを表示
@@ -48,22 +90,56 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
-// ゲーム数を加算
-function addGames(count) {
+// ボーナスを記録
+function recordBonus(type, addGames) {
+    const input = document.getElementById('gameInput');
+    const beforeGames = parseInt(input.value);
+
+    if (isNaN(beforeGames) || beforeGames < 0) {
+        alert('ゲーム数を入力してください');
+        input.focus();
+        return;
+    }
+
     const data = loadData();
-    data.totalGames += count;
-    saveData(data);
+    const prevTotal = calculateTotal();
+    const afterGames = beforeGames + addGames;
+
+    // 履歴に追加
+    data.history.push({
+        type: type,
+        before: beforeGames,
+        after: afterGames,
+        time: getTimestamp()
+    });
+
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+
     updateDisplay();
-    animateChange();
+    updateLastSaved();
+
+    // 入力をクリアして次の入力準備
+    input.value = '';
+    input.focus();
+
+    // 終了後ゲーム数を次回の入力値にセット（オプション）
+    // input.value = afterGames;
 }
 
-// 数字アニメーション
-function animateChange() {
-    const countEl = document.getElementById('totalGames');
-    countEl.style.transform = 'scale(1.2)';
-    setTimeout(() => {
-        countEl.style.transform = 'scale(1)';
-    }, 200);
+// 元に戻す
+function undoLast() {
+    const data = loadData();
+    if (data.history.length === 0) {
+        alert('戻す履歴がありません');
+        return;
+    }
+
+    if (confirm('最後の記録を削除しますか？')) {
+        data.history.pop();
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        updateDisplay();
+        updateLastSaved();
+    }
 }
 
 // 最終保存日時を更新
@@ -89,31 +165,33 @@ function init() {
     updateDisplay();
     updateLastSaved();
 
-    // ゲーム数入力
-    document.getElementById('addGames').addEventListener('click', () => {
-        const input = document.getElementById('gameInput');
-        const count = parseInt(input.value);
-        if (!isNaN(count) && count > 0) {
-            addGames(count);
-            input.value = '';
-        }
-    });
-
     // BBボタン
     document.getElementById('bbBtn').addEventListener('click', () => {
-        addGames(59);
+        recordBonus('BB', 59);
     });
 
     // RBボタン
     document.getElementById('rbBtn').addEventListener('click', () => {
-        addGames(24);
+        recordBonus('RB', 24);
+    });
+
+    // EnterキーでBB/RB入力（Shift+EnterでRB、EnterだけでBB）
+    document.getElementById('gameInput').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            if (e.shiftKey) {
+                recordBonus('RB', 24);
+            } else {
+                recordBonus('BB', 59);
+            }
+        }
     });
 
     // メモ保存
     document.getElementById('saveMemo').addEventListener('click', () => {
         const data = loadData();
         data.memo = document.getElementById('memo').value;
-        saveData(data);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        updateLastSaved();
         alert('メモを保存しました');
     });
 
@@ -131,8 +209,9 @@ function init() {
             if (data.comments.length > 50) {
                 data.comments = data.comments.slice(-50);
             }
-            saveData(data);
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
             updateDisplay();
+            updateLastSaved();
             input.value = '';
         }
     });
@@ -144,12 +223,8 @@ function init() {
         }
     });
 
-    // Enterキーでゲーム数加算
-    document.getElementById('gameInput').addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-            document.getElementById('addGames').click();
-        }
-    });
+    // 元に戻す
+    document.getElementById('undoBtn').addEventListener('click', undoLast);
 
     // リセット
     document.getElementById('resetBtn').addEventListener('click', () => {
@@ -158,6 +233,9 @@ function init() {
             location.reload();
         }
     });
+
+    // 入力欄にフォーカス
+    document.getElementById('gameInput').focus();
 }
 
 // 起動

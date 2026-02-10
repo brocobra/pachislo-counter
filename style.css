@@ -13,121 +13,90 @@ body {
 }
 
 .container {
-    max-width: 500px;
+    max-width: 450px;
     margin: 0 auto;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 20px;
-    padding: 30px;
-    backdrop-filter: blur(10px);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 }
 
 h1 {
     text-align: center;
-    margin-bottom: 30px;
-    font-size: 1.8rem;
+    margin-bottom: 15px;
+    font-size: 1.5rem;
     color: #ffd700;
-    text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
 }
 
 h3 {
-    font-size: 1rem;
+    font-size: 0.9rem;
     margin-bottom: 10px;
-    color: #ccc;
+    color: #aaa;
 }
 
-/* 有利区間表示 */
-.yuchi-display {
+/* 現在の有利区間 */
+.current-games {
     text-align: center;
-    background: linear-gradient(135deg, #ffd700 0%, #ffaa00 100%);
-    border-radius: 15px;
-    padding: 25px;
-    margin-bottom: 25px;
-    color: #1a1a2e;
-    box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
-}
-
-.yuchi-display .label {
+    background: rgba(255, 215, 0, 0.15);
+    border: 2px solid #ffd700;
+    border-radius: 12px;
+    padding: 12px;
+    margin-bottom: 20px;
     font-size: 1.2rem;
-    font-weight: bold;
-    display: block;
-    margin-bottom: 10px;
 }
 
-.yuchi-display .count {
-    font-size: 4rem;
-    font-weight: bold;
-    display: inline-block;
-}
-
-.yuchi-display .unit {
+.total-count {
     font-size: 2rem;
     font-weight: bold;
+    color: #ffd700;
 }
 
 /* 入力エリア */
-.input-section {
+.input-area {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 15px;
+    padding: 15px;
     margin-bottom: 20px;
 }
 
-.input-section input {
+.input-area input {
     width: 100%;
+    padding: 15px;
+    font-size: 1.3rem;
+    border: none;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.15);
+    color: #fff;
+    text-align: center;
+    margin-bottom: 15px;
+}
+
+.input-area input::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.input-area input:focus {
+    outline: none;
+    background: rgba(255, 255, 255, 0.25);
+}
+
+.bonus-select {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.bonus-btn {
     padding: 15px;
     font-size: 1.2rem;
     border: none;
     border-radius: 10px;
-    margin-bottom: 10px;
-    background: rgba(255, 255, 255, 0.2);
-    color: #fff;
-    text-align: center;
-}
-
-.input-section input::placeholder {
-    color: rgba(255, 255, 255, 0.5);
-}
-
-.input-section button, .bonus-buttons button, #saveMemo, #saveComment, .control-buttons button {
-    width: 100%;
-    padding: 15px;
-    font-size: 1.1rem;
-    border: none;
-    border-radius: 10px;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
     font-weight: bold;
-}
-
-.input-section button {
-    background: linear-gradient(135deg, #00d2ff 0%, #3a7bd5 100%);
     color: #fff;
 }
 
-.input-section button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(0, 210, 255, 0.4);
-}
-
-/* BB/RBボタン */
-.bonus-buttons {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 15px;
-    margin-bottom: 20px;
-}
-
-.bonus-btn {
-    padding: 20px;
-    font-size: 1.3rem;
-    border-radius: 15px;
-    border: none;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    color: #fff;
-}
-
-.bonus-btn span {
-    font-size: 0.9rem;
+.bonus-btn .plus {
+    font-size: 0.8rem;
     opacity: 0.8;
+    margin-left: 5px;
 }
 
 .bonus-btn.bb {
@@ -139,12 +108,85 @@ h3 {
 }
 
 .bonus-btn:hover {
-    transform: scale(1.05);
-    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
 }
 
 .bonus-btn:active {
-    transform: scale(0.95);
+    transform: scale(0.98);
+}
+
+/* 履歴 */
+.history-section {
+    margin-bottom: 20px;
+}
+
+.history-list {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 12px;
+    padding: 10px;
+    max-height: 250px;
+    overflow-y: auto;
+}
+
+.history-list.empty p {
+    text-align: center;
+    color: #666;
+    padding: 20px;
+    font-size: 0.9rem;
+}
+
+.history-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.history-item:last-child {
+    border-bottom: none;
+}
+
+.history-item .bonus-type {
+    font-size: 1.5rem;
+    font-weight: bold;
+    min-width: 50px;
+}
+
+.history-item.bb .bonus-type {
+    color: #ff4b2b;
+}
+
+.history-item.rb .bonus-type {
+    color: #9b59b6;
+}
+
+.history-item .games {
+    text-align: center;
+    flex: 1;
+}
+
+.history-item .before {
+    font-size: 1.1rem;
+}
+
+.history-item .after {
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: #ffd700;
+}
+
+.history-item .arrow {
+    color: #666;
+    margin: 0 5px;
+}
+
+.history-item .time {
+    font-size: 0.7rem;
+    color: #666;
+    min-width: 50px;
+    text-align: right;
 }
 
 /* メモ機能 */
@@ -154,11 +196,11 @@ h3 {
 
 .memo-section textarea {
     width: 100%;
-    height: 80px;
+    height: 70px;
     padding: 10px;
     border: none;
     border-radius: 10px;
-    background: rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.1);
     color: #fff;
     font-size: 0.9rem;
     resize: vertical;
@@ -166,12 +208,18 @@ h3 {
 }
 
 .memo-section textarea::placeholder {
-    color: rgba(255, 255, 255, 0.5);
+    color: rgba(255, 255, 255, 0.4);
 }
 
 #saveMemo {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 10px;
     background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
     color: #fff;
+    font-weight: bold;
+    cursor: pointer;
 }
 
 /* 一言入力 */
@@ -179,46 +227,47 @@ h3 {
     margin-bottom: 20px;
 }
 
+.comment-input-group {
+    display: flex;
+    margin-bottom: 10px;
+}
+
 .comment-section input {
-    width: calc(100% - 90px);
+    flex: 1;
     padding: 12px;
     border: none;
     border-radius: 10px 0 0 10px;
-    background: rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.1);
     color: #fff;
     font-size: 0.9rem;
 }
 
 .comment-section input::placeholder {
-    color: rgba(255, 255, 255, 0.5);
+    color: rgba(255, 255, 255, 0.4);
 }
 
 #saveComment {
-    width: 90px;
-    padding: 12px;
+    padding: 12px 20px;
+    border: none;
     border-radius: 0 10px 10px 0;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: #fff;
-    font-size: 0.9rem;
-}
-
-.comment-input-group {
-    display: flex;
+    font-weight: bold;
+    cursor: pointer;
 }
 
 .comment-history {
-    margin-top: 10px;
-    max-height: 120px;
-    overflow-y: auto;
     background: rgba(0, 0, 0, 0.2);
     border-radius: 10px;
     padding: 10px;
+    max-height: 100px;
+    overflow-y: auto;
 }
 
 .comment-item {
-    padding: 8px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    font-size: 0.85rem;
+    padding: 6px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    font-size: 0.8rem;
 }
 
 .comment-item:last-child {
@@ -226,14 +275,30 @@ h3 {
 }
 
 .comment-time {
-    color: #888;
-    font-size: 0.75rem;
+    color: #666;
+    font-size: 0.7rem;
     margin-right: 8px;
 }
 
 /* 操作ボタン */
 .control-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
     margin-bottom: 15px;
+}
+
+.control-buttons button {
+    padding: 12px;
+    border: none;
+    border-radius: 10px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.undo {
+    background: linear-gradient(135deg, #3494e6 0%, #ec6ead 100%);
+    color: #fff;
 }
 
 .reset {
@@ -244,25 +309,43 @@ h3 {
 /* 最終保存日時 */
 .last-saved {
     text-align: center;
-    font-size: 0.8rem;
-    color: #888;
+    font-size: 0.75rem;
+    color: #555;
+}
+
+/* スクロールバー */
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.1);
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 3px;
 }
 
 /* スマートフォン対応 */
 @media (max-width: 480px) {
     .container {
-        padding: 20px;
+        padding: 10px;
     }
 
     h1 {
-        font-size: 1.5rem;
+        font-size: 1.3rem;
     }
 
-    .yuchi-display .count {
-        font-size: 3rem;
+    .total-count {
+        font-size: 1.7rem;
     }
 
-    .bonus-buttons {
-        gap: 10px;
+    .history-item .before {
+        font-size: 1rem;
+    }
+
+    .history-item .after {
+        font-size: 1.1rem;
     }
 }

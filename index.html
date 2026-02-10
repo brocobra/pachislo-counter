@@ -10,24 +10,26 @@
     <div class="container">
         <h1>🎰 有利区間カウンター</h1>
 
-        <!-- 有利区間表示 -->
-        <div class="yuchi-display">
-            <span class="label">有利区間</span>
-            <span id="totalGames" class="count">0</span>
-            <span class="unit">G</span>
+        <!-- 現在の有利区間 -->
+        <div class="current-games">
+            有利区間: <span id="totalGames" class="total-count">0</span>G
         </div>
 
-        <!-- ゲーム数入力 -->
-        <div class="input-section">
-            <h3>ゲーム数を入力</h3>
-            <input type="number" id="gameInput" placeholder="ゲーム数" min="0">
-            <button id="addGames">加算</button>
+        <!-- 入力エリア -->
+        <div class="input-area">
+            <input type="number" id="gameInput" placeholder="ゲーム数を入力" min="0" inputmode="numeric">
+            <div class="bonus-select">
+                <button id="bbBtn" class="bonus-btn bb">BB <span class="plus">+59G</span></button>
+                <button id="rbBtn" class="bonus-btn rb">RB <span class="plus">+24G</span></button>
+            </div>
         </div>
 
-        <!-- BB/RBボタン -->
-        <div class="bonus-buttons">
-            <button id="bbBtn" class="bonus-btn bb">BB<br><span>+59G</span></button>
-            <button id="rbBtn" class="bonus-btn rb">RB<br><span>+24G</span></button>
+        <!-- 履歴 -->
+        <div class="history-section">
+            <h3>📋 履歴</h3>
+            <div id="historyList" class="history-list">
+                <p class="empty">まだ履歴がありません</p>
+            </div>
         </div>
 
         <!-- メモ機能 -->
@@ -40,14 +42,17 @@
         <!-- 一言入力 -->
         <div class="comment-section">
             <h3>💬 一言</h3>
-            <input type="text" id="comment" placeholder="一言メモ...">
-            <button id="saveComment">記録</button>
+            <div class="comment-input-group">
+                <input type="text" id="comment" placeholder="一言メモ...">
+                <button id="saveComment">記録</button>
+            </div>
             <div id="commentHistory" class="comment-history"></div>
         </div>
 
         <!-- 操作ボタン -->
         <div class="control-buttons">
-            <button id="resetBtn" class="reset">リセット</button>
+            <button id="undoBtn" class="undo">↩ 元に戻す</button>
+            <button id="resetBtn" class="reset">🗑 全リセット</button>
         </div>
 
         <!-- 保存日時 -->
