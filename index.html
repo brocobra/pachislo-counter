@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>パチスロ 有利区間カウンター</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>🎰 有利区間カウンター</h1>
+
+        <!-- 有利区間表示 -->
+        <div class="yuchi-display">
+            <span class="label">有利区間</span>
+            <span id="totalGames" class="count">0</span>
+            <span class="unit">G</span>
+        </div>
+
+        <!-- ゲーム数入力 -->
+        <div class="input-section">
+            <h3>ゲーム数を入力</h3>
+            <input type="number" id="gameInput" placeholder="ゲーム数" min="0">
+            <button id="addGames">加算</button>
+        </div>
+
+        <!-- BB/RBボタン -->
+        <div class="bonus-buttons">
+            <button id="bbBtn" class="bonus-btn bb">BB<br><span>+59G</span></button>
+            <button id="rbBtn" class="bonus-btn rb">RB<br><span>+24G</span></button>
+        </div>
+
+        <!-- メモ機能 -->
+        <div class="memo-section">
+            <h3>📝 メモ</h3>
+            <textarea id="memo" placeholder="メモを入力..."></textarea>
+            <button id="saveMemo">保存</button>
+        </div>
+
+        <!-- 一言入力 -->
+        <div class="comment-section">
+            <h3>💬 一言</h3>
+            <input type="text" id="comment" placeholder="一言メモ...">
+            <button id="saveComment">記録</button>
+            <div id="commentHistory" class="comment-history"></div>
+        </div>
+
+        <!-- 操作ボタン -->
+        <div class="control-buttons">
+            <button id="resetBtn" class="reset">リセット</button>
+        </div>
+
+        <!-- 保存日時 -->
+        <p id="lastSaved" class="last-saved"></p>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

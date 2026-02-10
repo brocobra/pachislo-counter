@@ -1,0 +1,268 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    min-height: 100vh;
+    padding: 20px;
+    color: #fff;
+}
+
+.container {
+    max-width: 500px;
+    margin: 0 auto;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    padding: 30px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 30px;
+    font-size: 1.8rem;
+    color: #ffd700;
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+}
+
+h3 {
+    font-size: 1rem;
+    margin-bottom: 10px;
+    color: #ccc;
+}
+
+/* 有利区間表示 */
+.yuchi-display {
+    text-align: center;
+    background: linear-gradient(135deg, #ffd700 0%, #ffaa00 100%);
+    border-radius: 15px;
+    padding: 25px;
+    margin-bottom: 25px;
+    color: #1a1a2e;
+    box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
+}
+
+.yuchi-display .label {
+    font-size: 1.2rem;
+    font-weight: bold;
+    display: block;
+    margin-bottom: 10px;
+}
+
+.yuchi-display .count {
+    font-size: 4rem;
+    font-weight: bold;
+    display: inline-block;
+}
+
+.yuchi-display .unit {
+    font-size: 2rem;
+    font-weight: bold;
+}
+
+/* 入力エリア */
+.input-section {
+    margin-bottom: 20px;
+}
+
+.input-section input {
+    width: 100%;
+    padding: 15px;
+    font-size: 1.2rem;
+    border: none;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    background: rgba(255, 255, 255, 0.2);
+    color: #fff;
+    text-align: center;
+}
+
+.input-section input::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.input-section button, .bonus-buttons button, #saveMemo, #saveComment, .control-buttons button {
+    width: 100%;
+    padding: 15px;
+    font-size: 1.1rem;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: bold;
+}
+
+.input-section button {
+    background: linear-gradient(135deg, #00d2ff 0%, #3a7bd5 100%);
+    color: #fff;
+}
+
+.input-section button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 210, 255, 0.4);
+}
+
+/* BB/RBボタン */
+.bonus-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.bonus-btn {
+    padding: 20px;
+    font-size: 1.3rem;
+    border-radius: 15px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: #fff;
+}
+
+.bonus-btn span {
+    font-size: 0.9rem;
+    opacity: 0.8;
+}
+
+.bonus-btn.bb {
+    background: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%);
+}
+
+.bonus-btn.rb {
+    background: linear-gradient(135deg, #8e44ad 0%, #9b59b6 100%);
+}
+
+.bonus-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+}
+
+.bonus-btn:active {
+    transform: scale(0.95);
+}
+
+/* メモ機能 */
+.memo-section {
+    margin-bottom: 20px;
+}
+
+.memo-section textarea {
+    width: 100%;
+    height: 80px;
+    padding: 10px;
+    border: none;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.2);
+    color: #fff;
+    font-size: 0.9rem;
+    resize: vertical;
+    margin-bottom: 10px;
+}
+
+.memo-section textarea::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+#saveMemo {
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    color: #fff;
+}
+
+/* 一言入力 */
+.comment-section {
+    margin-bottom: 20px;
+}
+
+.comment-section input {
+    width: calc(100% - 90px);
+    padding: 12px;
+    border: none;
+    border-radius: 10px 0 0 10px;
+    background: rgba(255, 255, 255, 0.2);
+    color: #fff;
+    font-size: 0.9rem;
+}
+
+.comment-section input::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+#saveComment {
+    width: 90px;
+    padding: 12px;
+    border-radius: 0 10px 10px 0;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #fff;
+    font-size: 0.9rem;
+}
+
+.comment-input-group {
+    display: flex;
+}
+
+.comment-history {
+    margin-top: 10px;
+    max-height: 120px;
+    overflow-y: auto;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 10px;
+    padding: 10px;
+}
+
+.comment-item {
+    padding: 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    font-size: 0.85rem;
+}
+
+.comment-item:last-child {
+    border-bottom: none;
+}
+
+.comment-time {
+    color: #888;
+    font-size: 0.75rem;
+    margin-right: 8px;
+}
+
+/* 操作ボタン */
+.control-buttons {
+    margin-bottom: 15px;
+}
+
+.reset {
+    background: linear-gradient(135deg, #434343 0%, #000000 100%);
+    color: #fff;
+}
+
+/* 最終保存日時 */
+.last-saved {
+    text-align: center;
+    font-size: 0.8rem;
+    color: #888;
+}
+
+/* スマートフォン対応 */
+@media (max-width: 480px) {
+    .container {
+        padding: 20px;
+    }
+
+    h1 {
+        font-size: 1.5rem;
+    }
+
+    .yuchi-display .count {
+        font-size: 3rem;
+    }
+
+    .bonus-buttons {
+        gap: 10px;
+    }
+}
