@@ -73,12 +73,12 @@ function createMachine() {
     };
 }
 
-// セッションのゲーム数を計算
+// セッションのゲーム数を計算（履歴の全てのafter値を合計）
 function calculateSessionGames() {
     const machine = getCurrentMachine();
     if (!machine || machine.sessionHistory.length === 0) return 0;
     return machine.sessionHistory.reduce((sum, item) => {
-        return sum + (item.after - item.before);
+        return sum + item.after;
     }, 0);
 }
 
@@ -138,7 +138,8 @@ function renderHistory(history) {
     }
 
     container.innerHTML = '';
-    history.slice().reverse().forEach((item) => {
+    history.slice().reverse().forEach((item, revIndex) => {
+        const actualIndex = history.length - 1 - revIndex;
         const div = document.createElement('div');
         div.className = `history-item ${item.type.toLowerCase()}`;
         div.innerHTML = `
@@ -149,6 +150,7 @@ function renderHistory(history) {
                 <span class="after">${item.after}</span>
             </div>
             <span class="time">${item.time}</span>
+            <button class="delete-item" onclick="app.deleteHistoryItem(${actualIndex})">×</button>
         `;
         container.appendChild(div);
     });
@@ -207,8 +209,8 @@ function recordBonus(type, addGames) {
     const newSessionHistory = [...machine.sessionHistory, historyItem];
     const newAllHistory = [...machine.allHistory, historyItem];
 
-    // 累計を更新（追加されたゲーム数を足す）
-    const newTotal = machine.totalGames + addGames;
+    // 累計を更新（afterGamesを足す）
+    const newTotal = machine.totalGames + afterGames;
 
     updateCurrentMachine({
         sessionHistory: newSessionHistory,
@@ -221,6 +223,42 @@ function recordBonus(type, addGames) {
     // 入力をクリア
     input.value = '';
     input.focus();
+}
+
+// 履歴を個別削除
+function deleteHistoryItem(index) {
+    const machine = getCurrentMachine();
+    if (!machine || index < 0 || index >= machine.sessionHistory.length) {
+        return;
+    }
+
+    const item = machine.sessionHistory[index];
+    if (confirm(`この記録を削除しますか？\n${item.type}: ${item.before}G → ${item.after}G`)) {
+        const newSessionHistory = [...machine.sessionHistory];
+        const newAllHistory = [...machine.allHistory];
+
+        // 削除対象のアイテムを削除
+        newSessionHistory.splice(index, 1);
+        // allHistoryからも削除（同じアイテムを探す）
+        const allIndex = newAllHistory.findIndex(h =>
+            h.type === item.type && h.before === item.before && h.after === item.after && h.time === item.time
+        );
+        if (allIndex !== -1) {
+            newAllHistory.splice(allIndex, 1);
+        }
+
+        // 累計から差し引く
+        const newTotal = Math.max(0, machine.totalGames - item.after);
+
+        updateCurrentMachine({
+            sessionHistory: newSessionHistory,
+            allHistory: newAllHistory,
+            totalGames: newTotal
+        });
+
+        updateDisplay();
+        updateLastSaved();
+    }
 }
 
 // 新しい台を作成
@@ -251,23 +289,8 @@ function undoLast() {
         return;
     }
 
-    if (confirm('最後の記録を削除しますか？')) {
-        const lastItem = machine.sessionHistory[machine.sessionHistory.length - 1];
-        const addedGames = lastItem.after - lastItem.before;
-
-        const newSessionHistory = machine.sessionHistory.slice(0, -1);
-        const newAllHistory = machine.allHistory.slice(0, -1);
-        const newTotal = machine.totalGames - addedGames;
-
-        updateCurrentMachine({
-            sessionHistory: newSessionHistory,
-            allHistory: newAllHistory,
-            totalGames: Math.max(0, newTotal)
-        });
-
-        updateDisplay();
-        updateLastSaved();
-    }
+    const lastIndex = machine.sessionHistory.length - 1;
+    deleteHistoryItem(lastIndex);
 }
 
 // セッションリセット（累計は保持）
@@ -406,20 +429,6 @@ function init() {
         }
     });
 
-    // 元に戻す
-    document.getElementById('undoBtn').addEventListener('click', undoLast);
-
-    // セッションリセット
-    document.getElementById('resetSessionBtn').addEventListener('click', resetSession);
-
-    // 台を保存（何もしないで自動保存）
-    document.getElementById('saveMachineBtn').addEventListener('click', () => {
-        alert('台は自動保存されています');
-    });
-
-    // 台削除
-    document.getElementById('deleteMachineBtn').addEventListener('click', deleteMachine);
-
     // 入力欄にフォーカス
     document.getElementById('gameInput').focus();
 }
@@ -432,5 +441,6 @@ const app = {
     undoLast: undoLast,
     saveMachine: () => alert('台は自動保存されています'),
     resetSession: resetSession,
-    deleteMachine: deleteMachine
+    deleteMachine: deleteMachine,
+    deleteHistoryItem: deleteHistoryItem
 };
