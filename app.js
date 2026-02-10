@@ -1,44 +1,131 @@
-const STORAGE_KEY = 'pachislo_data';
+const STORAGE_KEY = 'pachislo_data_v2';
+
+// 新しいデータ構造
+// {
+//   machines: [
+//     {
+//       id: "2025-02-11_1234",
+//       name: "2025/02/11",
+//       createdAt: "2025-02-11T12:34:56",
+//       totalGames: 0,      // 累計有利区間
+//       sessionHistory: [], // 今回のセッション履歴
+//       allHistory: [],     // 全履歴
+//       memo: "",
+//       comments: []
+//     }
+//   ],
+//   currentMachineId: null
+// }
 
 // データを読み込み
 function loadData() {
     const data = localStorage.getItem(STORAGE_KEY);
-    return data ? JSON.parse(data) : {
-        history: [],      // { type: 'BB'|'RB', before: number, after: number, time: string }
+    if (!data) {
+        return {
+            machines: [],
+            currentMachineId: null
+        };
+    }
+    return JSON.parse(data);
+}
+
+// データを保存
+function saveData(data) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    updateLastSaved();
+}
+
+// 現在の台を取得
+function getCurrentMachine() {
+    const data = loadData();
+    if (!data.currentMachineId) return null;
+    return data.machines.find(m => m.id === data.currentMachineId);
+}
+
+// 現在の台を更新
+function updateCurrentMachine(updates) {
+    const data = loadData();
+    const index = data.machines.findIndex(m => m.id === data.currentMachineId);
+    if (index !== -1) {
+        data.machines[index] = { ...data.machines[index], ...updates };
+        saveData(data);
+        return data.machines[index];
+    }
+    return null;
+}
+
+// 新しい台を作成
+function createMachine() {
+    const now = new Date();
+    const dateStr = now.toLocaleDateString('ja-JP').replace(/\//g, '/');
+    const timeStr = now.toTimeString().slice(0, 5);
+    const id = `${now.getTime()}`;
+
+    return {
+        id: id,
+        name: `${dateStr} ${timeStr}`,
+        createdAt: now.toISOString(),
+        totalGames: 0,
+        sessionHistory: [],
+        allHistory: [],
         memo: '',
         comments: []
     };
 }
 
-// データを保存
-function saveData(data) {
-    localStorage.setItem(STORAGE_KEY, data);
-    updateLastSaved();
-}
-
-// 有利区間の合計ゲーム数を計算
-function calculateTotal() {
-    const data = loadData();
-    if (data.history.length === 0) return 0;
-    return data.history[data.history.length - 1].after;
+// セッションのゲーム数を計算
+function calculateSessionGames() {
+    const machine = getCurrentMachine();
+    if (!machine || machine.sessionHistory.length === 0) return 0;
+    return machine.sessionHistory.reduce((sum, item) => {
+        return sum + (item.after - item.before);
+    }, 0);
 }
 
 // 表示を更新
 function updateDisplay() {
     const data = loadData();
-    const total = calculateTotal();
+    const machine = getCurrentMachine();
+
+    // 台セレクトボックス
+    updateMachineSelect(data.machines, data.currentMachineId);
 
     // 有利区間表示
-    document.getElementById('totalGames').textContent = total;
+    if (machine) {
+        document.getElementById('totalGames').textContent = machine.totalGames;
+        document.getElementById('sessionGames').textContent = calculateSessionGames();
+    } else {
+        document.getElementById('totalGames').textContent = '0';
+        document.getElementById('sessionGames').textContent = '0';
+    }
 
     // メモ
-    document.getElementById('memo').value = data.memo;
+    document.getElementById('memo').value = machine ? machine.memo : '';
 
     // 履歴
-    renderHistory(data.history);
+    if (machine) {
+        renderHistory(machine.sessionHistory);
+        renderComments(machine.comments);
+    } else {
+        document.getElementById('historyList').innerHTML = '<p class="empty">台を選択してください</p>';
+        document.getElementById('commentHistory').innerHTML = '';
+    }
+}
 
-    // コメント
-    renderComments(data.comments);
+// 台セレクトボックスを更新
+function updateMachineSelect(machines, currentId) {
+    const select = document.getElementById('machineSelect');
+    select.innerHTML = '<option value="">-- 台を選択 --</option>';
+
+    machines.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).forEach(machine => {
+        const option = document.createElement('option');
+        option.value = machine.id;
+        option.textContent = `${machine.name} (${machine.totalGames}G)`;
+        if (machine.id === currentId) {
+            option.selected = true;
+        }
+        select.appendChild(option);
+    });
 }
 
 // 履歴を表示
@@ -51,7 +138,7 @@ function renderHistory(history) {
     }
 
     container.innerHTML = '';
-    history.slice().reverse().forEach((item, index) => {
+    history.slice().reverse().forEach((item) => {
         const div = document.createElement('div');
         div.className = `history-item ${item.type.toLowerCase()}`;
         div.innerHTML = `
@@ -101,42 +188,118 @@ function recordBonus(type, addGames) {
         return;
     }
 
-    const data = loadData();
-    const prevTotal = calculateTotal();
+    const machine = getCurrentMachine();
+    if (!machine) {
+        alert('台を選択してください');
+        return;
+    }
+
     const afterGames = beforeGames + addGames;
 
-    // 履歴に追加
-    data.history.push({
+    const historyItem = {
         type: type,
         before: beforeGames,
         after: afterGames,
         time: getTimestamp()
+    };
+
+    // セッション履歴と全履歴に追加
+    const newSessionHistory = [...machine.sessionHistory, historyItem];
+    const newAllHistory = [...machine.allHistory, historyItem];
+
+    // 累計を更新（追加されたゲーム数を足す）
+    const newTotal = machine.totalGames + addGames;
+
+    updateCurrentMachine({
+        sessionHistory: newSessionHistory,
+        allHistory: newAllHistory,
+        totalGames: newTotal
     });
 
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-
     updateDisplay();
-    updateLastSaved();
 
-    // 入力をクリアして次の入力準備
+    // 入力をクリア
     input.value = '';
     input.focus();
-
-    // 終了後ゲーム数を次回の入力値にセット（オプション）
-    // input.value = afterGames;
 }
 
-// 元に戻す
-function undoLast() {
+// 新しい台を作成
+function newMachine() {
     const data = loadData();
-    if (data.history.length === 0) {
+    const newMachine = createMachine();
+    data.machines.push(newMachine);
+    data.currentMachineId = newMachine.id;
+    saveData(data);
+    updateDisplay();
+    document.getElementById('gameInput').focus();
+}
+
+// 台を選択
+function selectMachine(machineId) {
+    if (!machineId) return;
+    const data = loadData();
+    data.currentMachineId = machineId;
+    saveData(data);
+    updateDisplay();
+}
+
+// 元に戻す（セッションの最後を削除）
+function undoLast() {
+    const machine = getCurrentMachine();
+    if (!machine || machine.sessionHistory.length === 0) {
         alert('戻す履歴がありません');
         return;
     }
 
     if (confirm('最後の記録を削除しますか？')) {
-        data.history.pop();
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        const lastItem = machine.sessionHistory[machine.sessionHistory.length - 1];
+        const addedGames = lastItem.after - lastItem.before;
+
+        const newSessionHistory = machine.sessionHistory.slice(0, -1);
+        const newAllHistory = machine.allHistory.slice(0, -1);
+        const newTotal = machine.totalGames - addedGames;
+
+        updateCurrentMachine({
+            sessionHistory: newSessionHistory,
+            allHistory: newAllHistory,
+            totalGames: Math.max(0, newTotal)
+        });
+
+        updateDisplay();
+        updateLastSaved();
+    }
+}
+
+// セッションリセット（累計は保持）
+function resetSession() {
+    const machine = getCurrentMachine();
+    if (!machine) {
+        alert('台を選択してください');
+        return;
+    }
+
+    if (confirm('セッションをリセットしますか？\n（累計有利区間は保持されます）')) {
+        updateCurrentMachine({
+            sessionHistory: []
+        });
+        updateDisplay();
+        updateLastSaved();
+    }
+}
+
+// 台を削除
+function deleteMachine() {
+    const data = loadData();
+    if (!data.currentMachineId) {
+        alert('台を選択してください');
+        return;
+    }
+
+    const machine = getCurrentMachine();
+    if (confirm(`「${machine.name}」を削除しますか？\nこの操作は取り消せません。`)) {
+        data.machines = data.machines.filter(m => m.id !== data.currentMachineId);
+        data.currentMachineId = null;
+        saveData(data);
         updateDisplay();
         updateLastSaved();
     }
@@ -165,6 +328,14 @@ function init() {
     updateDisplay();
     updateLastSaved();
 
+    // 新規台ボタン
+    document.getElementById('newMachineBtn').addEventListener('click', newMachine);
+
+    // 台選択
+    document.getElementById('machineSelect').addEventListener('change', (e) => {
+        selectMachine(e.target.value);
+    });
+
     // BBボタン
     document.getElementById('bbBtn').addEventListener('click', () => {
         recordBonus('BB', 59);
@@ -175,7 +346,7 @@ function init() {
         recordBonus('RB', 24);
     });
 
-    // EnterキーでBB/RB入力（Shift+EnterでRB、EnterだけでBB）
+    // EnterキーでBB/RB入力
     document.getElementById('gameInput').addEventListener('keypress', (e) => {
         if (e.key === 'Enter') {
             if (e.shiftKey) {
@@ -188,30 +359,40 @@ function init() {
 
     // メモ保存
     document.getElementById('saveMemo').addEventListener('click', () => {
-        const data = loadData();
-        data.memo = document.getElementById('memo').value;
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-        updateLastSaved();
+        const machine = getCurrentMachine();
+        if (!machine) {
+            alert('台を選択してください');
+            return;
+        }
+        updateCurrentMachine({
+            memo: document.getElementById('memo').value
+        });
         alert('メモを保存しました');
     });
 
     // 一言記録
     document.getElementById('saveComment').addEventListener('click', () => {
+        const machine = getCurrentMachine();
+        if (!machine) {
+            alert('台を選択してください');
+            return;
+        }
+
         const input = document.getElementById('comment');
         const text = input.value.trim();
         if (text) {
-            const data = loadData();
-            data.comments.push({
+            const newComments = [...machine.comments, {
                 text: text,
                 time: getTimestamp()
-            });
+            }];
             // 最大50件に制限
-            if (data.comments.length > 50) {
-                data.comments = data.comments.slice(-50);
+            if (newComments.length > 50) {
+                newComments.splice(0, newComments.length - 50);
             }
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+            updateCurrentMachine({
+                comments: newComments
+            });
             updateDisplay();
-            updateLastSaved();
             input.value = '';
         }
     });
@@ -226,13 +407,16 @@ function init() {
     // 元に戻す
     document.getElementById('undoBtn').addEventListener('click', undoLast);
 
-    // リセット
-    document.getElementById('resetBtn').addEventListener('click', () => {
-        if (confirm('本当にリセットしますか？すべてのデータが消去されます。')) {
-            localStorage.removeItem(STORAGE_KEY);
-            location.reload();
-        }
+    // セッションリセット
+    document.getElementById('resetSessionBtn').addEventListener('click', resetSession);
+
+    // 台を保存（何もしないで自動保存）
+    document.getElementById('saveMachineBtn').addEventListener('click', () => {
+        alert('台は自動保存されています');
     });
+
+    // 台削除
+    document.getElementById('deleteMachineBtn').addEventListener('click', deleteMachine);
 
     // 入力欄にフォーカス
     document.getElementById('gameInput').focus();

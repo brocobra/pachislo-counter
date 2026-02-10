@@ -30,21 +30,75 @@ h3 {
     color: #aaa;
 }
 
+/* 台選択エリア */
+.machine-selector {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.machine-selector select {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.15);
+    color: #fff;
+    font-size: 0.95rem;
+    cursor: pointer;
+}
+
+.machine-selector select:focus {
+    outline: none;
+    background: rgba(255, 255, 255, 0.25);
+}
+
+.new-machine {
+    padding: 12px 15px;
+    border: none;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #00d2ff 0%, #3a7bd5 100%);
+    color: #fff;
+    font-weight: bold;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.new-machine:hover {
+    transform: translateY(-2px);
+}
+
 /* 現在の有利区間 */
 .current-games {
-    text-align: center;
     background: rgba(255, 215, 0, 0.15);
     border: 2px solid #ffd700;
     border-radius: 12px;
-    padding: 12px;
+    padding: 15px;
     margin-bottom: 20px;
-    font-size: 1.2rem;
 }
 
-.total-count {
-    font-size: 2rem;
+.current-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+}
+
+.current-row:first-child {
+    border-bottom: 1px solid rgba(255, 215, 0, 0.3);
+    padding-bottom: 12px;
+    margin-bottom: 8px;
+}
+
+.total-count, .session-count {
+    font-size: 1.8rem;
     font-weight: bold;
     color: #ffd700;
+}
+
+.session-count {
+    font-size: 1.4rem;
+    color: #00d2ff;
 }
 
 /* 入力エリア */
@@ -294,6 +348,7 @@ h3 {
     border-radius: 10px;
     font-weight: bold;
     cursor: pointer;
+    font-size: 0.9rem;
 }
 
 .undo {
@@ -301,7 +356,17 @@ h3 {
     color: #fff;
 }
 
-.reset {
+.save-machine {
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    color: #fff;
+}
+
+.reset-session {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: #fff;
+}
+
+.delete-machine {
     background: linear-gradient(135deg, #434343 0%, #000000 100%);
     color: #fff;
 }
@@ -338,7 +403,11 @@ h3 {
     }
 
     .total-count {
-        font-size: 1.7rem;
+        font-size: 1.5rem;
+    }
+
+    .session-count {
+        font-size: 1.2rem;
     }
 
     .history-item .before {
@@ -347,5 +416,10 @@ h3 {
 
     .history-item .after {
         font-size: 1.1rem;
+    }
+
+    .control-buttons button {
+        font-size: 0.8rem;
+        padding: 10px;
     }
 }
