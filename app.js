@@ -1,4 +1,13 @@
-const STORAGE_KEY = 'pachislo_data_v2';
+const STORAGE_KEY = 'pachislo_data_v3'; // バージョンアップ
+
+// 機種設定
+const MODEL_TYPES = {
+    black: { name: '沖ドキブラック', bb: 59, rb: 24 },
+    gold: { name: '沖ドキゴールド', bb: 69, rb: 29 }
+};
+
+// 現在選択中の機種タイプ
+let currentModelType = 'black';
 
 // 新しいデータ構造
 // {
@@ -26,7 +35,17 @@ function loadData() {
             currentMachineId: null
         };
     }
-    return JSON.parse(data);
+    const parsed = JSON.parse(data);
+
+    // マイグレーション: v2からv3へ（modelTypeがない場合はblackをセット）
+    if (parsed.machines) {
+        parsed.machines = parsed.machines.map(m => ({
+            ...m,
+            modelType: m.modelType || 'black'
+        }));
+    }
+
+    return parsed;
 }
 
 // データを保存
@@ -65,6 +84,7 @@ function createMachine() {
         id: id,
         name: `${dateStr} ${timeStr}`,
         createdAt: now.toISOString(),
+        modelType: currentModelType,  // 機種タイプを追加
         totalGames: 0,
         sessionHistory: [],
         allHistory: [],
@@ -82,6 +102,79 @@ function calculateSessionGames() {
     }, 0);
 }
 
+// 天国からのゲーム数を計算
+function calculateSinceTengoku() {
+    const machine = getCurrentMachine();
+    if (!machine || machine.sessionHistory.length === 0) return 0;
+
+    // 天国グループの終了ポイントを取得
+    const tengokuEnds = getTengokuGroupEnds(machine.sessionHistory);
+
+    // 前回天国からのゲーム数
+    if (tengokuEnds.length >= 1) {
+        return calculateGamesSincePoint(machine.sessionHistory, tengokuEnds[0]);
+    }
+    // 天国がない場合は全ゲーム数
+    return calculateSessionGames();
+}
+
+// 前々回天国からのゲーム数を計算
+function calculateSincePrevTengoku() {
+    const machine = getCurrentMachine();
+    if (!machine || machine.sessionHistory.length === 0) return 0;
+
+    const tengokuEnds = getTengokuGroupEnds(machine.sessionHistory);
+
+    // 前々回天国からのゲーム数
+    if (tengokuEnds.length >= 2) {
+        return calculateGamesSincePoint(machine.sessionHistory, tengokuEnds[1]);
+    }
+    // 天国グループが1つしかない場合は全ゲーム数
+    if (tengokuEnds.length === 1) {
+        return calculateSessionGames();
+    }
+    return 0;
+}
+
+// 天国グループの終了ポイントを取得（履歴のインデックス）
+// 新しい順（最新の天国グループが最初）
+function getTengokuGroupEnds(history) {
+    const ends = [];
+    let inTengokuGroup = false;
+
+    // 古い順に見ていく
+    for (let i = 0; i < history.length; i++) {
+        const item = history[i];
+
+        if (item.isTengoku) {
+            // 天国グループの開始
+            inTengokuGroup = true;
+        } else if (inTengokuGroup) {
+            // 天国グループの終了（通常が出た）
+            ends.push(i - 1); // グループの最後の天国のインデックス
+            inTengokuGroup = false;
+        }
+    }
+
+    // 最後が天国グループで終わっている場合
+    if (inTengokuGroup) {
+        ends.push(history.length - 1);
+    }
+
+    // 新しい順に反転（最新が最初）
+    return ends.reverse();
+}
+
+// 指定したポイントからのゲーム数を計算
+function calculateGamesSincePoint(history, endIndex) {
+    let games = 0;
+    // 指定ポイントの次から最後まで合計
+    for (let i = endIndex + 1; i < history.length; i++) {
+        games += history[i].after;
+    }
+    return games;
+}
+
 // 表示を更新
 function updateDisplay() {
     const data = loadData();
@@ -94,9 +187,17 @@ function updateDisplay() {
     if (machine) {
         document.getElementById('totalGames').textContent = machine.totalGames;
         document.getElementById('sessionGames').textContent = calculateSessionGames();
+        document.getElementById('sinceTengoku').textContent = calculateSinceTengoku();
+        document.getElementById('sincePrevTengoku').textContent = calculateSincePrevTengoku();
+
+        // 機種タイプを反映
+        currentModelType = machine.modelType || 'black';
+        updateModelDisplay();
     } else {
         document.getElementById('totalGames').textContent = '0';
         document.getElementById('sessionGames').textContent = '0';
+        document.getElementById('sinceTengoku').textContent = '0';
+        document.getElementById('sincePrevTengoku').textContent = '0';
     }
 
     // メモ
@@ -110,6 +211,14 @@ function updateDisplay() {
         document.getElementById('historyList').innerHTML = '<p class="empty">台を選択してください</p>';
         document.getElementById('commentHistory').innerHTML = '';
     }
+}
+
+// 機種表示を更新
+function updateModelDisplay() {
+    const model = MODEL_TYPES[currentModelType];
+    document.getElementById('bbPlus').textContent = `+${model.bb}G`;
+    document.getElementById('rbPlus').textContent = `+${model.rb}G`;
+    document.querySelector(`input[name="modelType"][value="${currentModelType}"]`).checked = true;
 }
 
 // 台セレクトボックスを更新
@@ -141,9 +250,9 @@ function renderHistory(history) {
     history.slice().reverse().forEach((item, revIndex) => {
         const actualIndex = history.length - 1 - revIndex;
         const div = document.createElement('div');
-        div.className = `history-item ${item.type.toLowerCase()}`;
+        div.className = `history-item ${item.type.toLowerCase()} ${item.isTengoku ? 'tengoku' : ''}`;
         div.innerHTML = `
-            <span class="bonus-type">${item.type}</span>
+            <span class="bonus-type">${item.type}${item.isTengoku ? '🏔️' : ''}</span>
             <div class="games">
                 <span class="before">${item.before}</span>
                 <span class="arrow">→</span>
@@ -198,11 +307,24 @@ function recordBonus(type, addGames) {
 
     const afterGames = beforeGames + addGames;
 
+    // 天国判定: 前回の履歴がある場合はそのbefore値で判定
+    // 32ゲーム以内なら天国
+    let isTengoku = false;
+    if (machine.sessionHistory.length > 0) {
+        // 今回入力したbefore値が32以下なら天国
+        // （前回の当選から今回の当選までのゲーム数が32以内）
+        isTengoku = beforeGames <= 32;
+    } else {
+        // 最初の当選は天国とみなす
+        isTengoku = true;
+    }
+
     const historyItem = {
         type: type,
         before: beforeGames,
         after: afterGames,
-        time: getTimestamp()
+        time: getTimestamp(),
+        isTengoku: isTengoku  // 天国フラグ
     };
 
     // セッション履歴と全履歴に追加
@@ -351,6 +473,7 @@ function getTimestamp() {
 // 初期化
 function init() {
     updateDisplay();
+    updateModelDisplay(); // 機種表示を初期化
     updateLastSaved();
 
     // 新規台ボタン
@@ -363,23 +486,34 @@ function init() {
 
     // BBボタン
     document.getElementById('bbBtn').addEventListener('click', () => {
-        recordBonus('BB', 59);
+        const model = MODEL_TYPES[currentModelType];
+        recordBonus('BB', model.bb);
     });
 
     // RBボタン
     document.getElementById('rbBtn').addEventListener('click', () => {
-        recordBonus('RB', 24);
+        const model = MODEL_TYPES[currentModelType];
+        recordBonus('RB', model.rb);
     });
 
     // EnterキーでBB/RB入力
     document.getElementById('gameInput').addEventListener('keypress', (e) => {
         if (e.key === 'Enter') {
+            const model = MODEL_TYPES[currentModelType];
             if (e.shiftKey) {
-                recordBonus('RB', 24);
+                recordBonus('RB', model.rb);
             } else {
-                recordBonus('BB', 59);
+                recordBonus('BB', model.bb);
             }
         }
+    });
+
+    // 機種選択ラジオボタン
+    document.querySelectorAll('input[name="modelType"]').forEach(radio => {
+        radio.addEventListener('change', (e) => {
+            currentModelType = e.target.value;
+            updateModelDisplay();
+        });
     });
 
     // メモ保存

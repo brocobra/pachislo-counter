@@ -10,6 +10,13 @@
     <div class="container">
         <h1>🎰 有利区間カウンター</h1>
 
+        <!-- 機種選択エリア -->
+        <div class="model-selector">
+            <label>機種:</label>
+            <label><input type="radio" name="modelType" value="black" checked> 沖ドキブラック</label>
+            <label><input type="radio" name="modelType" value="gold"> 沖ドキゴールド</label>
+        </div>
+
         <!-- 台選択エリア -->
         <div class="machine-selector">
             <select id="machineSelect">
@@ -28,14 +35,22 @@
                 <span>今回のセッション</span>
                 <span class="session-count"><span id="sessionGames">0</span>G</span>
             </div>
+            <div class="current-row tengoku-row">
+                <span>🏔️ 前回天国から</span>
+                <span class="tengoku-count"><span id="sinceTengoku">0</span>G</span>
+            </div>
+            <div class="current-row tengoku-row">
+                <span>🏔️🏔️ 前々回天国から</span>
+                <span class="tengoku-count"><span id="sincePrevTengoku">0</span>G</span>
+            </div>
         </div>
 
         <!-- 入力エリア -->
         <div class="input-area">
             <input type="number" id="gameInput" placeholder="ゲーム数を入力" min="0" inputmode="numeric">
             <div class="bonus-select">
-                <button id="bbBtn" class="bonus-btn bb">BB <span class="plus">+59G</span></button>
-                <button id="rbBtn" class="bonus-btn rb">RB <span class="plus">+24G</span></button>
+                <button id="bbBtn" class="bonus-btn bb">BB <span class="plus" id="bbPlus">+59G</span></button>
+                <button id="rbBtn" class="bonus-btn rb">RB <span class="plus" id="rbPlus">+24G</span></button>
             </div>
         </div>
 

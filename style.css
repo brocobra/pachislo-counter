@@ -24,6 +24,30 @@ h1 {
     color: #ffd700;
 }
 
+/* 機種選択エリア */
+.model-selector {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 15px;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    font-size: 0.85rem;
+}
+
+.model-selector label {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+}
+
+.model-selector input[type="radio"] {
+    cursor: pointer;
+}
+
 h3 {
     font-size: 0.9rem;
     margin-bottom: 10px;
@@ -99,6 +123,17 @@ h3 {
 .session-count {
     font-size: 1.4rem;
     color: #00d2ff;
+}
+
+/* 天国カウンター */
+.tengoku-row {
+    font-size: 0.85rem;
+}
+
+.tengoku-count {
+    font-size: 1rem;
+    font-weight: bold;
+    color: #ff6b6b;
 }
 
 /* 入力エリア */
@@ -214,6 +249,16 @@ h3 {
 
 .history-item.rb .bonus-type {
     color: #9b59b6;
+}
+
+/* 天国アイテム */
+.history-item.tengoku {
+    background: rgba(255, 215, 0, 0.1);
+    border-radius: 8px;
+}
+
+.history-item.tengoku .bonus-type {
+    color: #ffd700;
 }
 
 .history-item .games {
