@@ -229,7 +229,8 @@ function updateMachineSelect(machines, currentId) {
     machines.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).forEach(machine => {
         const option = document.createElement('option');
         option.value = machine.id;
-        option.textContent = `${machine.name} (${machine.totalGames}G)`;
+        const modelName = MODEL_TYPES[machine.modelType || 'black'].name;
+        option.textContent = `${machine.name} (${machine.totalGames}G) [${modelName}]`;
         if (machine.id === currentId) {
             option.selected = true;
         }
@@ -513,6 +514,18 @@ function init() {
         radio.addEventListener('change', (e) => {
             currentModelType = e.target.value;
             updateModelDisplay();
+
+            // 現在選択中の台があれば機種タイプを保存
+            const machine = getCurrentMachine();
+            if (machine && machine.modelType !== currentModelType) {
+                if (confirm(`機種を「${MODEL_TYPES[currentModelType].name}」に変更しますか？`)) {
+                    updateCurrentMachine({ modelType: currentModelType });
+                } else {
+                    // キャンセルされた場合は元に戻す
+                    currentModelType = machine.modelType;
+                    updateModelDisplay();
+                }
+            }
         });
     });
 
